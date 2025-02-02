@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids Piggy Bank Saver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #001f3f;
+            color: white;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        .cycle-picture {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+            margin: auto;
+            width: 315px;
+        }
+        .cycle-piece {
+            width: 100px;
+            height: 100px;
+            border: 1px solid #000;
+            background-size: cover;
+            background-color: grey;
+            visibility: hidden;
+            cursor: grab;
+        }
+        .dragging {
+            opacity: 0.5;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        input {
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+            margin: 5px;
+        }
+        .transaction-log {
+            margin-top: 20px;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #doneButton {
+            display: none;
+            margin-top: 15px;
+            background-color: #ffc107;
+            color: black;
+        }
+        #doneButton:hover {
+            background-color: #e0a800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kids Piggy Bank Saver</h1>
+        <label for="goal">Goal Name: </label>
+        <input type="text" id="goal" placeholder="Enter goal (e.g., Cycle)"><br><br>
+        <label for="amountRequired">Amount Required: </label>
+        <input type="number" id="amountRequired" placeholder="Enter required amount"><br><br>
+        <button onclick="startSaving()">Start Saving</button>
+        <h3>Your Savings: $<span id="savingsAmount">0</span></h3>
+        <h3>Remaining Amount: $<span id="remainingAmount">0</span></h3>
+        <div class="cycle-picture" id="cyclePicture"></div>
+        <h3>Add Savings</h3>
+        <input type="number" id="amountToSave" placeholder="Enter amount">
+        <input type="text" id="source" placeholder="Enter source">
+        <button onclick="addTransaction()">Save</button>
+        <div id="transactionLog" class="transaction-log"><h3>Transaction Log:</h3></div>
+        <button onclick="goalCompleted()">Done!</button>
+    </div>
+    <script>
+        let goal = "";
+        let amountRequired = 0;
+        let totalSaved = 0;
+        let pieceThreshold = 0;
+
+        function startSaving() {
+            goal = document.getElementById("goal").value;
+            amountRequired = parseFloat(document.getElementById("amountRequired").value);
+            totalSaved = 0;
+            pieceThreshold = amountRequired / 9;
+            document.getElementById("savingsAmount").textContent = totalSaved;
+            document.getElementById("remainingAmount").textContent = amountRequired;
+            document.getElementById("transactionLog").innerHTML = "<h3>Transaction Log:</h3>";
+            renderCyclePicture();
+        }
+
+        function renderCyclePicture() {
+            const cyclePicture = document.getElementById("cyclePicture");
+            cyclePicture.innerHTML = "";
+            for (let i = 0; i < 9; i++) {
+                const piece = document.createElement("div");
+                piece.classList.add("cycle-piece");
+                piece.id = "piece" + i;
+                piece.draggable = true;
+                piece.addEventListener("dragstart", dragStart);
+                piece.addEventListener("dragover", dragOver);
+                piece.addEventListener("drop", drop);
+                cyclePicture.appendChild(piece);
+            }
+        }
+
+        function addTransaction() {
+            let amountToAdd = parseFloat(document.getElementById("amountToSave").value);
+            let source = document.getElementById("source").value;
+            if (isNaN(amountToAdd) || amountToAdd <= 0 || !source) return;
+            totalSaved += amountToAdd;
+            document.getElementById("savingsAmount").textContent = totalSaved;
+            document.getElementById("remainingAmount").textContent = (amountRequired - totalSaved).toFixed(2);
+            updateCyclePicture();
+            logTransaction(amountToAdd, source);
+        }
+
+        function updateCyclePicture() {
+            let allVisible = true;
+            for (let i = 0; i < 9; i++) {
+                const piece = document.getElementById("piece" + i);
+                if (totalSaved >= (i + 1) * pieceThreshold) {
+                    piece.style.visibility = "visible";
+                    piece.style.backgroundImage = `url('images/${i + 1}.jpg')`;
+                } else {
+                    allVisible = false;
+                }
+            }
+            document.getElementById("doneButton").style.display = allVisible ? "block" : "none";
+        }
+
+        function logTransaction(amount, source) {
+            const log = document.getElementById("transactionLog");
+            const entry = document.createElement("p");
+            let date = new Date();
+            let timestamp = date.toLocaleString();
+            entry.textContent = `Saved Rs.${amount} from ${source} on ${timestamp}`;
+            log.appendChild(entry);
+        }
+
+        function dragStart(event) {
+            event.dataTransfer.setData("text", event.target.id);
+            event.target.classList.add("dragging");
+        }
+
+        function dragOver(event) {
+            event.preventDefault();
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            const draggedId = event.dataTransfer.getData("text");
+            const draggedElement = document.getElementById(draggedId);
+            const targetElement = event.target;
+            if (draggedElement !== targetElement) {
+                let tempBackground = draggedElement.style.backgroundImage;
+                draggedElement.style.backgroundImage = targetElement.style.backgroundImage;
+                targetElement.style.backgroundImage = tempBackground;
+            }
+        }
+
+        function goalCompleted() {
+            alert("Congratulations! You have reached your savings goal!");
+        }
+    </script>
+</body>
+</html>
