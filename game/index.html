@@ -84,8 +84,8 @@
         <label for="amountRequired">Amount Required: </label>
         <input type="number" id="amountRequired" placeholder="Enter required amount"><br><br>
         <button onclick="startSaving()">Start Saving</button>
-        <h3>Your Savings: $<span id="savingsAmount">0</span></h3>
-        <h3>Remaining Amount: $<span id="remainingAmount">0</span></h3>
+        <h3>Your Savings: Rs.<span id="savingsAmount">0</span></h3>
+        <h3>Remaining Amount: Rs.<span id="remainingAmount">0</span></h3>
         <div class="cycle-picture" id="cyclePicture"></div>
         <h3>Add Savings</h3>
         <input type="number" id="amountToSave" placeholder="Enter amount">
@@ -156,7 +156,7 @@
             const entry = document.createElement("p");
             let date = new Date();
             let timestamp = date.toLocaleString();
-            entry.textContent = `Saved Rs.${amount} from ${source} on ${timestamp}`;
+            entry.textContent = "Saved Rs.{amount} from {source} on {timestamp}";
             log.appendChild(entry);
         }
 
